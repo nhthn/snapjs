@@ -28,7 +28,8 @@
 // Global settings /////////////////////////////////////////////////////
 
 var hex_sha512 = require('./sha512');
-var XMLHttpRequest = require('xhr2').XMLHttpRequest;
+var xhrc = require('xmlhttprequest-cookie');
+var XMLHttpRequest = xhrc.XMLHttpRequest;
 
 function nop() {};
 function localize(str) { return str; };
@@ -500,7 +501,6 @@ Cloud.prototype.callService = function (
         service = this.api[serviceName],
         myself = this,
         postDict;
-
     if (!this.session) {
         errorCall.call(null, 'You are not connected', 'Cloud');
         return;
@@ -545,6 +545,7 @@ Cloud.prototype.callService = function (
                 responseList = myself.parseResponse(
                     request.responseText
                 );
+                console.log(myself);
                 callBack.call(null, responseList, service.url);
             }
         };
