@@ -5,6 +5,8 @@
   "private": true,
   "dependencies": {
     "express": "3.x",
-    "xmlhttprequest-cookie": "0.x"
+    "xmlhttprequest-cookie": "0.x",
+    "passport": "0.2.x",
+    "passport-local": "1.x"
   }
 }
