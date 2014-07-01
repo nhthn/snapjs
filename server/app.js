@@ -11,20 +11,27 @@ app.configure(function () {
 	app.use(express.bodyParser());
 });
 
+function processProjectList(projects) {
+	var attr_whitelist = ['ProjectName', 'Updated', 'Notes', 'Public', 'Thumbnail'];
+	return projects.map(function (before) {
+		var after = {};
+		attr_whitelist.forEach(function (attr) { after[attr] = before[attr]; });
+		return after;
+	});
+}
+
 app.post('/login', function (req, res) {
 	var cloud;
 	cloud = new SnapCloud('https://snapcloud.miosoft.com/miocon/app/login?_app=SnapCloud');
 	cloud.login(req.body.username, hex_sha512(req.body.password), function () {
 		cloud.getProjectList(function (projects) {
-			console.log(projects);
-			res.send({ success: true });
+			res.send({ projects: processProjectList(projects) });
 		}, function () {
-			console.log(arguments);
-			res.send({ error: true });
+			res.send({ error: Array.prototype.slice.call(arguments) });
 		});
 	}, function () {
 		console.log(arguments);
-		res.send({ error: true });
+		res.send({ error: Array.prototype.slice.call(arguments) });
 	});
 });
 
