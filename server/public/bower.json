@@ -1,0 +1,16 @@
+{
+  "name": "snapjs-client",
+  "version": "0.0.0",
+  "description": "In-browser client for SnapJS, a Snap!-to-JavaScript converter",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "1.x"
+  }
+}

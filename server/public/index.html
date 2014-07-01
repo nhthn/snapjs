@@ -1,13 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" ng-app>
 <head>
 	<title></title>
+	<script src="bower_components/angular/angular.js"></script>
+	<script src="js/controllers.js"></script>
 </head>
-<body>
-	<form action="/login" method="POST">
-		<input type="text" name="username"><br>
-		<input type="password" name="password"><br>
-		<input type="submit">
-	</form>
+<body ng-controller="ProjectListCtrl">
+	<ul>
+		<li ng-repeat="project in projects">
+			<p><img src="{{project.thumbnail}}"></p>
+			<h1>{{project.name}}</h1>
+			<p>Last updated: <time datetime="{{project.date}}"></p>
+			<p>Notes: {{project.notes}}</p>
+			<p>Public: {{project.public}}</p>
+		</li>
+	</ul>
 </body>
 </html>
