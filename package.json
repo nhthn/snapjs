@@ -6,6 +6,7 @@
   "dependencies": {
     "express": "3.x",
     "express-session": "^1.6.1",
+    "xml2js": "^0.4.4",
     "xmlhttprequest-cookie": "0.x"
   }
 }
