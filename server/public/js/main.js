@@ -8,7 +8,7 @@ window.addEvent('load', function () {
 				password: $('login-password').value
 			},
 			onRequest: function () {
-				console.log('...');
+				// display loading animation?
 			},
 			onSuccess: function (response) {
 				if (response.error) {
@@ -33,13 +33,31 @@ function onLoginError(str) {
 
 function onLogin(projectList) {
 	$('login-form').setStyle('display', 'none');
-	projectList.each(function (project) {
-		var li;
-		new Element('li').adopt(
-			new Element('h2', { text: project.name }),
-			new Element('date', { datetime: project.date }),
-			new Element('img', { src: project.thumbnail }),
-			new Element('p', { src: project.notes })
-		).inject($('project-list'));
+	projectList.each(function (project, index) {
+		new Element('li')
+			.adopt(
+				new Element('img', { src: project.thumbnail, 'class': 'project-thumbnail' }),
+				new Element('h2', { text: project.name, 'class': 'project-name' }),
+				new Element('date', { text: 'Last updated ' + project.date, 'class': 'project-date' }),
+				new Element('p', { text: project.notes, 'class': 'project-notes' }),
+				new Element('button', {
+					text: 'Select this project',
+					'class': 'project-select',
+					events: { click: function () { selectProject(index); } }
+				})
+			)
+			.inject($('project-list'));
 	});
+}
+
+function selectProject(index) {
+	/*
+	new Request.JSON({
+		url: '/project',
+		method: 'post',
+		data: { index: index },
+		onRequest: function () {
+			// display loading animation?
+		}
+	}).send();*/
 }
