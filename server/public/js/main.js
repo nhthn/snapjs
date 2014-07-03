@@ -1,6 +1,9 @@
+function loginError(str) {
+	$('login-error').set('text', str);
+}
+
 window.addEvent('load', function () {
 	$('login-button').addEvent('click', function () {
-		var xhr;
 		new Request.JSON({
 			url: '/login',
 			method: 'post',
@@ -12,9 +15,16 @@ window.addEvent('load', function () {
 				console.log('...');
 			},
 			onSuccess: function (response) {
-				console.log(response);
+				if (response.error) {
+					loginError(response.error.join('\n'));
+				} else {
+					console.log(response);
+				}
 			},
-			onFailure: function () {
+			onFailure: function (xhr) {
+				loginError(xhr.status);
+			},
+			onComplete: function () {
 				$('login-password').value = '';
 			}
 		}).send();
