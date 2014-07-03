@@ -1,19 +1,17 @@
 <!DOCTYPE html>
-<html lang="en" ng-app>
+<html lang="en">
 <head>
 	<title></title>
-	<script src="bower_components/angular/angular.js"></script>
-	<script src="js/controllers.js"></script>
+	<script src="js/mootools-core-1.5.0-full-nocompat-yc.js"></script>
+	<script src="js/main.js"></script>
 </head>
-<body ng-controller="ProjectListCtrl">
-	<ul>
-		<li ng-repeat="project in projects">
-			<p><img src="{{project.thumbnail}}"></p>
-			<h1>{{project.name}}</h1>
-			<p>Last updated: <time datetime="{{project.date}}"></p>
-			<p>Notes: {{project.notes}}</p>
-			<p>Public: {{project.public}}</p>
-		</li>
-	</ul>
+<body>
+
+<div id="login-form">
+	<input type="text" id="login-username">
+	<input type="password" id="login-password">
+	<button id="login-button">Login</button>
+</div>
+
 </body>
 </html>
