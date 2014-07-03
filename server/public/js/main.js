@@ -33,7 +33,7 @@ function onLoginError(str) {
 
 function onLogin(projectList) {
 	$('login-form').setStyle('display', 'none');
-	projectList.each(function (project, index) {
+	projectList.each(function (project) {
 		new Element('li')
 			.adopt(
 				new Element('img', { src: project.thumbnail, 'class': 'project-thumbnail' }),
@@ -43,18 +43,18 @@ function onLogin(projectList) {
 				new Element('button', {
 					text: 'Select this project',
 					'class': 'project-select',
-					events: { click: function () { selectProject(index); } }
+					events: { click: function () { selectProject(project.name); } }
 				})
 			)
 			.inject($('project-list'));
 	});
 }
 
-function selectProject(index) {
+function selectProject(name) {
 	new Request.JSON({
 		url: '/project',
 		method: 'post',
-		data: { index: index },
+		data: { name: name },
 		onSuccess: function (response) {
 			console.log(response);
 		},

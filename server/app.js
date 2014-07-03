@@ -6,6 +6,9 @@ var fs = require('fs');
 
 var app = express();
 
+var cloudCount = 1;
+var clouds = [];
+
 app.configure(function () {
 	app.use(express.static(__dirname + '/public'));
 	app.use(express.cookieParser());
@@ -26,11 +29,13 @@ function processProjectList(projects) {
 }
 
 app.post('/login', function (req, res) {
-	var cloud;
-	cloud = new SnapCloud('https://snapcloud.miosoft.com/miocon/app/login?_app=SnapCloud');
+	var cloud, cloudID;
+	cloudID = cloudCount;
+	cloud = clouds[cloudID] = new SnapCloud('https://snapcloud.miosoft.com/miocon/app/login?_app=SnapCloud');
+	cloudCount += 1;
 	cloud.login(req.body.username, hex_sha512(req.body.password), function () {
 		cloud.getProjectList(function (projects) {
-			req.session.cloud = cloud;
+			req.session.cloudID = cloudID;
 			res.send({ projects: processProjectList(projects) });
 		}, function () {
 			res.send({ error: Array.prototype.slice.call(arguments) });
@@ -41,11 +46,27 @@ app.post('/login', function (req, res) {
 });
 
 app.post('/project', function (req, res) {
-	var cloud = req.session.cloud;
-	if (!cloud) {
+	var cloudID = req.session.cloudID, cloud;
+	if (!cloudID) {
 		res.send({ error: 'not logged in' });
 	} else {
-		res.send({ success: 'bla' });
+		cloud = clouds[cloudID];
+		console.log(cloud);
+		cloud.reconnect(function () {
+			cloud.callService(
+				'getProject',
+				function (response) {
+					var source;
+					cloud.disconnect();
+					source = response[0].SourceCode;
+					res.send({ success: 'bla' });
+				},
+				function () { res.send({ error: Array.prototype.slice.call(arguments) }); },
+				[req.body.name]
+			);
+		}, function () {
+			res.send({ error: Array.prototype.slice.call(arguments) });
+		});
 	}
 });
 
