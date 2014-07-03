@@ -51,13 +51,15 @@ function onLogin(projectList) {
 }
 
 function selectProject(index) {
-	/*
 	new Request.JSON({
 		url: '/project',
 		method: 'post',
 		data: { index: index },
-		onRequest: function () {
-			// display loading animation?
+		onSuccess: function (response) {
+			console.log(response);
+		},
+		onFailure: function (xhr) {
+			console.log('error :(');
 		}
-	}).send();*/
+	}).send();
 }
