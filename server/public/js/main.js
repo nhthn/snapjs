@@ -1,7 +1,3 @@
-function loginError(str) {
-	$('login-error').set('text', str);
-}
-
 window.addEvent('load', function () {
 	$('login-button').addEvent('click', function () {
 		new Request.JSON({
@@ -16,13 +12,13 @@ window.addEvent('load', function () {
 			},
 			onSuccess: function (response) {
 				if (response.error) {
-					loginError(response.error.join('\n'));
+					onLoginError(response.error.join(' '));
 				} else {
-					console.log(response);
+					onLogin(response.projects);
 				}
 			},
 			onFailure: function (xhr) {
-				loginError(xhr.status);
+				onLoginError(xhr.status);
 			},
 			onComplete: function () {
 				$('login-password').value = '';
@@ -30,3 +26,20 @@ window.addEvent('load', function () {
 		}).send();
 	});
 });
+
+function onLoginError(str) {
+	$('login-error').set('text', str);
+}
+
+function onLogin(projectList) {
+	$('login-form').setStyle('display', 'none');
+	projectList.each(function (project) {
+		var li;
+		new Element('li').adopt(
+			new Element('h2', { text: project.name }),
+			new Element('date', { datetime: project.date }),
+			new Element('img', { src: project.thumbnail }),
+			new Element('p', { src: project.notes })
+		).inject($('project-list'));
+	});
+}
