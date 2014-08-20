@@ -1,5 +1,17 @@
 var xamel = require('xamel');
 
+if (typeof String.prototype.startsWith != 'function') {
+    String.prototype.startsWith = function (str) {
+        return this.slice(0, str.length) == str;
+    };
+}
+
+function dollarFormat(str, strings) {
+    return str.replace(/\$\d+/g, function (match) {
+        return strings[+match.slice(1) - 1];
+    });
+}
+
 function Translator() {
 	this.stage = null;
 	this.sprites = {};
@@ -49,6 +61,7 @@ Translator.Sprite = function (el, owner) {
 	while (this.owner.hasOwnProperty(this.name)) {
 		this.name += '_';
 	}
+	// Add to translator's sprite dictionary and record the mapping
 	this.owner.sprites[this.name] = this;
 	this.owner.spriteNameMappings[el.attrs.name] = this.name;
 
@@ -133,14 +146,31 @@ Translator.Block = function (el, owner) {
 	});
 };
 
+Translator.Block.reportTemplates = {
+    'sum': '$1 + $2',
+    'difference': '$1 - $2',
+    'product': '$1 * $2',
+    'quotient': '$1 / $2',
+    'random': 'random($1, $2)',
+    'lessthan': '$1 < $2',
+    'equals': '$1 == $2',
+    'greaterthan': '$1 > $2',
+    'not': '!$1'
+};
+
 Translator.Block.prototype.toString = function () {
-	var result, that;
+	var result, type, that;
 	that = this;
-	result = 'this.' + this.type + '(';
-	if (this.args.length > 0) {
-		result += this.args.join(', ');
+	if (this.type.startsWith('report') && (Translator.Block.reportTemplates.hasOwnProperty(this.type.slice(6).toLowerCase()))) { // blegggh
+        type = this.type.slice(6).toLowerCase();
+        result = dollarFormat(Translator.Block.reportTemplates[type], this.args);
+	} else {
+		result = 'this.' + this.type + '(';
+		if (this.args.length > 0) {
+			result += this.args.join(', ');
+		}
+		result += ')';
 	}
-	result += ')';
 	return result;
 };
 
