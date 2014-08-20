@@ -25,11 +25,24 @@ Translator.prototype.toString = function (el) {
 
 /*****************************************************************************/
 
+function toValidJSName(str) {
+	// Keep name lowercase
+	str = str.toLowerCase();
+	// Convert spaces to camel case
+	str = str.split(/\s+/).map(function (word, i) {
+		if (i === 0) {
+			return word;
+		}
+		return word.charAt(0).toUpperCase() + word.slice(1);
+	}).join('');
+	return str;
+}
+
 Translator.Sprite = function (el, owner) {
 	var that = this;
 	this.owner = owner;
 
-	this.name = el.attrs.name.replace(' ', '_');
+	this.name = toValidJSName(el.attrs.name);
 	this.owner.sprites[this.name] = this;
 	this.owner.spriteNameMappings[el.attrs.name] = this.name;
 
