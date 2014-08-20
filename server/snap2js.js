@@ -155,15 +155,21 @@ Translator.Block.reportTemplates = {
     'lessthan': '$1 < $2',
     'equals': '$1 == $2',
     'greaterthan': '$1 > $2',
-    'not': '!$1'
+    'not': '!$1',
+    'attributeof': '$2.$1'
 };
 
 Translator.Block.prototype.toString = function () {
-	var result, type, that;
+	var result, type, template, that;
 	that = this;
 	if (this.type.startsWith('report') && (Translator.Block.reportTemplates.hasOwnProperty(this.type.slice(6).toLowerCase()))) { // blegggh
         type = this.type.slice(6).toLowerCase();
-        result = dollarFormat(Translator.Block.reportTemplates[type], this.args);
+        template = Translator.Block.reportTemplates[type];
+        if (typeof template === 'string') {
+            result = dollarFormat(template, this.args);
+        } else if (typeof template === 'function') {
+            result = template.apply(this, this.args);
+        }
 	} else {
 		result = 'this.' + this.type + '(';
 		if (this.args.length > 0) {
