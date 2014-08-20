@@ -27,6 +27,7 @@ Translator.prototype.toString = function (el) {
 
 function toValidJSName(str) {
 	// Keep name lowercase
+	// All global library functions are in Uppercase, so this prevents collision
 	str = str.toLowerCase();
 	// Convert spaces to camel case
 	str = str.split(/\s+/).map(function (word, i) {
@@ -43,6 +44,11 @@ Translator.Sprite = function (el, owner) {
 	this.owner = owner;
 
 	this.name = toValidJSName(el.attrs.name);
+	// Sometimes multiple sprite names will map to one
+	// As a last resort we add underscores to ensure uniqueness
+	while (this.owner.hasOwnProperty(this.name)) {
+		this.name += '_';
+	}
 	this.owner.sprites[this.name] = this;
 	this.owner.spriteNameMappings[el.attrs.name] = this.name;
 
