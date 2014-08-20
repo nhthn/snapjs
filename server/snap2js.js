@@ -3,11 +3,11 @@ var xamel = require('xamel');
 function Translator() {
 	this.stage = null;
 	this.sprites = {};
+	this.spriteNameMappings = {};
 }
 
 Translator.prototype.makeSprite = function (el) {
-	var sprite = new Translator.Sprite(el, this);
-	this.sprites[sprite.name] = sprite;
+	new Translator.Sprite(el, this);
 };
 
 Translator.prototype.toString = function (el) {
@@ -28,7 +28,11 @@ Translator.prototype.toString = function (el) {
 Translator.Sprite = function (el, owner) {
 	var that = this;
 	this.owner = owner;
+
 	this.name = el.attrs.name.replace(' ', '_');
+	this.owner.sprites[this.name] = this;
+	this.owner.spriteNameMappings[el.attrs.name] = this.name;
+
 	this.scripts = [];
 	el.find('scripts/script').forEach(function (script) {
 		that.makeScript(script);
