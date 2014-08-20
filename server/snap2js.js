@@ -6,12 +6,6 @@ if (typeof String.prototype.startsWith != 'function') {
     };
 }
 
-function dollarFormat(str, strings) {
-    return str.replace(/\$\d+/g, function (match) {
-        return strings[+match.slice(1) - 1];
-    });
-}
-
 function Translator() {
 	this.stage = null;
 	this.sprites = {};
@@ -93,7 +87,7 @@ Translator.Script = function (el, owner, isHeader) {
 	}.bind(this));
 };
 
-Translator.Script.prototype.toString = function (raw) {
+Translator.Script.prototype.toString = function (mode) {
 	var lines, that;
 	that = this;
 	lines = (this.blocks.join(';\n') + ';').split('\n');
@@ -113,7 +107,12 @@ Translator.Script.prototype.toString = function (raw) {
 			return lines.join('\n');
 		}
 	} else {
-		if (!raw) {
+        // The mode 'block' indicates that we only want to encase the function body in curly braces, rather than function () {}.
+        // This is useful when we're using a bare control structure like if-else.
+		if (mode === 'block') {
+            lines.unshift('{');
+            lines.push('}');
+        } else {
 			lines.unshift('function () {');
 			lines.push('}');
 		}
@@ -146,32 +145,48 @@ Translator.Block = function (el, owner) {
 	});
 };
 
-Translator.Block.reportTemplates = {
-    'sum': '$1 + $2',
-    'difference': '$1 - $2',
-    'product': '$1 * $2',
-    'quotient': '$1 / $2',
-    'random': 'random($1, $2)',
-    'lessthan': '$1 < $2',
-    'equals': '$1 == $2',
-    'greaterthan': '$1 > $2',
-    'not': '!$1',
-    'attributeof': '$2.$1'
+function dollarFormat(str, args) {
+    return str.replace(/\$([b]?)\d+/g, function (match) {
+        var m, flags, index, arg;
+        m = match.match(/^\$([b]?)(\d+)$/);
+        flags = m[1];
+        index = m[2];
+        arg = args[+m[2] - 1];
+        if (~flags.indexOf('b')) {
+            arg = arg.toString('block');
+        }
+        return arg;
+    });
+}
+
+Translator.Block.templates = {
+    'reportSum': '$1 + $2',
+    'reportDifference': '$1 - $2',
+    'reportProduct': '$1 * $2',
+    'reportQuotient': '$1 / $2',
+    'reportRandom': 'random($1, $2)',
+    'reportLessThan': '$1 < $2',
+    'reportEquals': '$1 == $2',
+    'reportGreaterThan': '$1 > $2',
+    'reportNot': '!$1',
+    'reportAttributeOf': '$2.$1',
+    'doRepeat': '($1).times($2)',
+    'doIfElse': 'if ($1) $b2 else $b3'
 };
 
 Translator.Block.prototype.toString = function () {
 	var result, type, template, that;
 	that = this;
-	if (this.type.startsWith('report') && (Translator.Block.reportTemplates.hasOwnProperty(this.type.slice(6).toLowerCase()))) { // blegggh
-        type = this.type.slice(6).toLowerCase();
-        template = Translator.Block.reportTemplates[type];
+    type = this.type;
+	if (Translator.Block.templates.hasOwnProperty(type)) {
+        template = Translator.Block.templates[type];
         if (typeof template === 'string') {
             result = dollarFormat(template, this.args);
         } else if (typeof template === 'function') {
             result = template.apply(this, this.args);
         }
 	} else {
-		result = 'this.' + this.type + '(';
+		result = 'this.' + type + '(';
 		if (this.args.length > 0) {
 			result += this.args.join(', ');
 		}
@@ -200,7 +215,7 @@ module.exports = snap2js;
 
 function main() {
 	var str;
-	str = require('fs').readFileSync('test/swimmer.xml').toString();
+	str = require('fs').readFileSync('test/sampleproject.xml').toString();
 	snap2js(str, function (code) {
 		console.log(code);
 	});
