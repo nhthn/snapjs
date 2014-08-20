@@ -6,7 +6,8 @@ function Translator() {
 }
 
 Translator.prototype.makeSprite = function (el) {
-	this.sprites[el.attrs.name] = new Translator.Sprite(el);
+	var sprite = new Translator.Sprite(el, this);
+	this.sprites[sprite.name] = sprite;
 };
 
 Translator.prototype.toString = function (el) {
@@ -24,9 +25,10 @@ Translator.prototype.toString = function (el) {
 
 /*****************************************************************************/
 
-Translator.Sprite = function (el) {
+Translator.Sprite = function (el, owner) {
 	var that = this;
-	this.name = el.attrs.name;
+	this.owner = owner;
+	this.name = el.attrs.name.replace(' ', '_');
 	this.scripts = [];
 	el.find('scripts/script').forEach(function (script) {
 		that.makeScript(script);
@@ -69,6 +71,10 @@ Translator.Script.prototype.toString = function (raw) {
 			lines[0] = this.owner.name + ".addEvent('click', function () {";
 			lines.push('});');
 			return lines.join('\n');
+		} else {
+			lines[0] = this.owner.name + ".addEvent('" + this.blocks[0].type + "', function () {";
+			lines.push('});');
+			return lines.join('\n');
 		}
 	} else {
 		if (!raw) {
@@ -98,7 +104,8 @@ Translator.Block = function (el, owner) {
 		} else if (arg.name === 'script') {
 			return new Translator.Script(arg, owner);
 		} else {
-			console.warn('Unidentified block type');
+			console.warn('Unidentified block type ' + arg.name);
+			console.log(arg);
 		}
 	});
 };
@@ -134,7 +141,7 @@ module.exports = snap2js;
 
 function main() {
 	var str;
-	str = require('fs').readFileSync('test/sampleproject.xml').toString();
+	str = require('fs').readFileSync('test/swimmer.xml').toString();
 	snap2js(str, function (code) {
 		console.log(code);
 	});
