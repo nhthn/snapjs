@@ -9,18 +9,39 @@ Translator.prototype.makeSprite = function (el) {
 	this.sprites[el.attrs.name] = new Translator.Sprite(el);
 };
 
+Translator.prototype.toString = function (el) {
+	var spriteNames, result, that;
+	that = this;
+	spriteNames = Object.keys(this.sprites).sort();
+
+	result = 'var ' + spriteNames.join(', ') + ';\n\n';
+	result += spriteNames.map(function (spriteName) {
+		return that.sprites[spriteName].toString();
+	}).join('\n\n');
+
+	return result;
+};
+
 /*****************************************************************************/
 
 Translator.Sprite = function (el) {
+	var that = this;
 	this.name = el.attrs.name;
 	this.scripts = [];
 	el.find('scripts/script').forEach(function (script) {
-		this.makeScript(script);
-	}.bind(this));
+		that.makeScript(script);
+	});
 };
 
 Translator.Sprite.prototype.makeScript = function (el) {
 	this.scripts.push(new Translator.Script(el, this, true));
+};
+
+Translator.Sprite.prototype.toString = function () {
+	var result;
+	result = this.name + ' = new Sprite();\n\n';
+	result += this.scripts.join('\n\n');
+	return result;
 };
 
 /*****************************************************************************/
@@ -32,16 +53,13 @@ Translator.Script = function (el, owner, isHeader) {
 	el.map(function (block) {
 		this.makeBlock(block);
 	}.bind(this));
-	console.log(this.toString());
 };
 
-Translator.Script.prototype.toString = function () {
+Translator.Script.prototype.toString = function (raw) {
 	var lines, that;
 	that = this;
 	lines = (this.blocks.join(';\n') + ';').split('\n');
-	lines = lines.map(function (line) {
-		return '\t' + line;
-	});
+	lines = lines.map(function (line) { return '\t' + line; });
 	if (this.isHeader) {
 		if (this.blocks[0].type === 'receiveGo') {
 			lines[0] = this.owner.name + ".addEvent('receiveGo', function () {";
@@ -53,8 +71,10 @@ Translator.Script.prototype.toString = function () {
 			return lines.join('\n');
 		}
 	} else {
-		lines.unshift('function () {');
-		lines.push('}');
+		if (!raw) {
+			lines.unshift('function () {');
+			lines.push('}');
+		}
 		return lines.join('\n');
 	}
 };
@@ -69,8 +89,10 @@ Translator.Block = function (el, owner) {
 	this.owner = owner;
 	this.type = el.attrs.s;
 	this.args = el.children.map(function (arg) {
-		if (arg.name === 'l' || arg.name === 'color') {
+		if (arg.name === 'l') {
 			return arg.children[0];
+		} else if (arg.name === 'color') {
+			return 'new Color(' + arg.children[0].split(',').join(', ') + ')';
 		} else if (arg.name === 'block') {
 			return new Translator.Block(arg, owner);
 		} else if (arg.name === 'script') {
@@ -103,10 +125,21 @@ function snap2js(xml, callback) {
 		xml.find('project/stage/sprites/sprite').forEach(function (sprite) {
 			translator.makeSprite(sprite);
 		});
+		if (callback instanceof Function) {
+			callback(translator.toString());
+		}
 	});
 }
 module.exports = snap2js;
 
+function main() {
+	var str;
+	str = require('fs').readFileSync('test/sampleproject.xml').toString();
+	snap2js(str, function (code) {
+		console.log(code);
+	});
+}
+
 if (require.main === module) {
-	snap2js(require('fs').readFileSync('test/sampleproject.xml').toString());
+	main();
 }
