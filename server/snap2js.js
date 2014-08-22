@@ -94,15 +94,15 @@ Translator.Script.prototype.toString = function (mode) {
 	lines = lines.map(function (line) { return '\t' + line; });
 	if (this.isHeader) {
 		if (this.blocks[0].type === 'receiveGo') {
-			lines[0] = this.owner.name + ".addEvent('receiveGo', function () {";
+			lines[0] = this.owner.name + ".onReceiveGo(function () {";
 			lines.push('});');
 			return lines.join('\n');
 		} else if (this.blocks[0].type === 'receiveClick') {
-			lines[0] = this.owner.name + ".addEvent('click', function () {";
+			lines[0] = this.owner.name + ".onReceiveClick(function () {";
 			lines.push('});');
 			return lines.join('\n');
 		} else {
-			lines[0] = this.owner.name + ".addEvent('" + this.blocks[0].type + "', function () {";
+			lines[0] = this.owner.name + ".onReceiveMessage(function () {";
 			lines.push('});');
 			return lines.join('\n');
 		}
@@ -145,43 +145,72 @@ Translator.Block = function (el, owner) {
 	});
 };
 
+Translator.Block.templates = {
+    reportSum: ['$p1 + $p2', 'o'],
+    reportDifference: ['$p1 - $p2', 'o'],
+    reportProduct: ['$p1 * $p2', 'o'],
+    reportQuotient: ['$p1 / $p2', 'o'],
+    reportRandom: 'random($1, $2)',
+    reportLessThan: ['$p1 < $p2', 'o'],
+    reportEquals: ['$p1 == $p2', 'o'],
+    reportGreaterThan: ['$p1 > $p2', 'o'],
+    reportNot: ['!$p1', 'o'],
+    reportAttributeOf: '$p2[$s1]',
+    reportTrue: 'true',
+    reportFalse: 'false',
+    reportAnd: ['$p1 && $p2', 'o'],
+    reportOr: ['$p1 || $p2', 'o'],
+    reportMap: '$p1.map(function (item) { $p2(item) })',
+    doForever: 'while (true) $b1',
+    doRepeat: '($1).times($2)',
+    doUntil: 'while (!($1)) $b2',
+    doIf: 'if ($1) $b2',
+    doIfElse: 'if ($1) $b2 else $b3'
+};
+
+function innerParenthesize(arg) {
+    var template;
+    if (arg instanceof Translator.Block) {
+        template = Translator.Block.templates[arg.type];
+        if (template && template instanceof Array && ~template[1].indexOf('o')) {
+            arg = '(' + arg.toString() + ')';
+        }
+    }
+    return arg;
+}
+
 function dollarFormat(str, args) {
-    return str.replace(/\$([b]?)\d+/g, function (match) {
-        var m, flags, index, arg;
-        m = match.match(/^\$([b]?)(\d+)$/);
+    return str.replace(/\$(\w*)\d+/g, function (match) {
+        var m, flags, index, arg, template;
+        m = match.match(/^\$(\w*)(\d+)$/);
         flags = m[1];
         index = m[2];
         arg = args[+m[2] - 1];
         if (~flags.indexOf('b')) {
             arg = arg.toString('block');
         }
+        if (~flags.indexOf('s')) {
+            arg = JSON.stringify(arg.toString());
+        }
+        if (~flags.indexOf('p')) {
+            arg = innerParenthesize(arg);
+        }
         return arg;
     });
 }
 
-Translator.Block.templates = {
-    'reportSum': '$1 + $2',
-    'reportDifference': '$1 - $2',
-    'reportProduct': '$1 * $2',
-    'reportQuotient': '$1 / $2',
-    'reportRandom': 'random($1, $2)',
-    'reportLessThan': '$1 < $2',
-    'reportEquals': '$1 == $2',
-    'reportGreaterThan': '$1 > $2',
-    'reportNot': '!$1',
-    'reportAttributeOf': '$2.$1',
-    'doRepeat': '($1).times($2)',
-    'doIfElse': 'if ($1) $b2 else $b3'
-};
-
 Translator.Block.prototype.toString = function () {
-	var result, type, template, that;
+	var result, type, template, tflags, that;
 	that = this;
     type = this.type;
 	if (Translator.Block.templates.hasOwnProperty(type)) {
         template = Translator.Block.templates[type];
+        tflags = {};
+        if (template instanceof Array) {
+            template = template[0];
+        }
         if (typeof template === 'string') {
-            result = dollarFormat(template, this.args);
+            result = dollarFormat.call(this, template, this.args);
         } else if (typeof template === 'function') {
             result = template.apply(this, this.args);
         }
@@ -215,7 +244,7 @@ module.exports = snap2js;
 
 function main() {
 	var str;
-	str = require('fs').readFileSync('test/sampleproject.xml').toString();
+	str = require('fs').readFileSync('test/swimmer.xml').toString();
 	snap2js(str, function (code) {
 		console.log(code);
 	});
