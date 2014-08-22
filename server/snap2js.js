@@ -148,6 +148,7 @@ Translator.Block = function (el, owner) {
 // A template is either a raw_template or an array [raw_template, flags]
 // A raw_template is either a function or a string.
 // The only flag supported at the moment is 'o', which means "this block may need to be wrapped in parentheses."
+// A function raw_template is called with the template args, and the current block 
 // A string raw_template has substitution parameters. Examples:
 // $1 = first argument
 // $p2 = second argument, wrapped in parentheses when it is a block marked 'o'
@@ -237,10 +238,9 @@ Translator.Block.prototype.toString = function () {
 function snap2js(xml, callback) {
 	xamel.parse(xml, function (err, xml) {
 		var translator;
-		if (err) throw err;
 		translator = new Translator();
 		//sprites = xml.find('project/stage');
-		xml.find('project/stage/sprites/sprite').forEach(function (sprite) {
+		xml.find('snapdata/project/stage/sprites/sprite').forEach(function (sprite) {
 			translator.makeSprite(sprite);
 		});
 		if (callback instanceof Function) {
@@ -252,7 +252,7 @@ module.exports = snap2js;
 
 function main() {
 	var str;
-	str = require('fs').readFileSync('test/swimmer.xml').toString();
+	str = require('fs').readFileSync('test/sampleproject.xml').toString();
 	snap2js(str, function (code) {
 		console.log(code);
 	});

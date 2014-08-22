@@ -2,7 +2,8 @@ var fs = require('fs');
 	express = require('express'),
 	session = require('express-session'),
 	SnapCloud = require('./cloud').Cloud,
-	hex_sha512 = require('./sha512');
+	hex_sha512 = require('./sha512'),
+	snap2js = require('./snap2js');
 
 var app = express();
 
@@ -59,7 +60,9 @@ app.post('/project', function (req, res) {
 					var source;
 					cloud.disconnect();
 					source = response[0].SourceCode;
-					res.send({ success: 'bla' });
+					snap2js(source, function (js) {
+						res.send({ js: js });
+					});
 				},
 				function () { res.send({ error: Array.prototype.slice.call(arguments) }); },
 				[req.body.name]

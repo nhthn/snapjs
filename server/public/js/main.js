@@ -56,10 +56,15 @@ function selectProject(name) {
 		method: 'post',
 		data: { name: name },
 		onSuccess: function (response) {
-			console.log(response);
+			onReceiveJS(response.js);
 		},
 		onFailure: function (xhr) {
 			console.log('error :(');
 		}
 	}).send();
+}
+
+function onReceiveJS(js) {
+	$('project-list').setStyle('display', 'none');
+	$('source-viewer').set('text', js);
 }
