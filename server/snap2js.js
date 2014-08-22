@@ -145,6 +145,14 @@ Translator.Block = function (el, owner) {
 	});
 };
 
+// A template is either a raw_template or an array [raw_template, flags]
+// A raw_template is either a function or a string.
+// The only flag supported at the moment is 'o', which means "this block may need to be wrapped in parentheses."
+// A string raw_template has substitution parameters. Examples:
+// $1 = first argument
+// $p2 = second argument, wrapped in parentheses when it is a block marked 'o'
+// $b1 = first argument, a Script, represented as a raw block surrounded by curly brackets
+// $s1 = second argument as a string literal
 Translator.Block.templates = {
     reportSum: ['$p1 + $p2', 'o'],
     reportDifference: ['$p1 - $p2', 'o'],
@@ -176,7 +184,7 @@ function innerParenthesize(arg) {
             arg = '(' + arg.toString() + ')';
         }
     }
-    return arg;
+    return arg.toString();
 }
 
 function dollarFormat(str, args) {
