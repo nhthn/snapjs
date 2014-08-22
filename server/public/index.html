@@ -4,6 +4,9 @@
 	<title></title>
 	<script src="js/mootools-core-1.5.0-full-nocompat-yc.js"></script>
 	<script src="js/main.js"></script>
+	<style>
+		body > div { display: none; }
+	</style>
 </head>
 <body>
 
@@ -18,7 +21,10 @@
 	<ul id="project-list"></ul>
 </div>
 
-<pre id="source-viewer"></pre>
+<div id="source-viewer">
+	<pre id="source"></pre>
+	<button id="source-return-button">Back to project list</button>
+</div>
 
 </body>
 </html>

@@ -1,4 +1,11 @@
+function showOnly(section) {
+	$$('body > div').setStyle('display', 'none');
+	$(section).setStyle('display', 'block');
+}
+
 window.addEvent('load', function () {
+	showOnly('login-form');
+
 	$('login-button').addEvent('click', function () {
 		new Request.JSON({
 			url: '/login',
@@ -25,6 +32,10 @@ window.addEvent('load', function () {
 			}
 		}).send();
 	});
+
+	$('source-return-button').addEvent('click', function () {
+		showOnly('project-list-ctr');
+	});
 });
 
 function onLoginError(str) {
@@ -32,7 +43,7 @@ function onLoginError(str) {
 }
 
 function onLogin(projectList) {
-	$('login-form').setStyle('display', 'none');
+	showOnly('project-list-ctr');
 	projectList.each(function (project) {
 		new Element('li')
 			.adopt(
@@ -65,6 +76,6 @@ function selectProject(name) {
 }
 
 function onReceiveJS(js) {
-	$('project-list').setStyle('display', 'none');
-	$('source-viewer').set('text', js);
+	showOnly('source-viewer');
+	$('source').set('text', js);
 }
