@@ -90,7 +90,9 @@ Translator.Script = function (el, owner, isHeader) {
 Translator.Script.prototype.toString = function (mode) {
 	var lines, that;
 	that = this;
-	lines = (this.blocks.join('\n')).split('\n');
+	lines = this.blocks.map(function (b) {
+        return b.toString('statement');
+    }).join('\n').split('\n');
 	lines = lines.map(function (line) { return '\t' + line; });
 	if (this.isHeader) {
 		if (this.blocks[0].type === 'receiveGo') {
@@ -208,7 +210,7 @@ function dollarFormat(str, args) {
     });
 }
 
-Translator.Block.prototype.toString = function () {
+Translator.Block.prototype.toString = function (mode) {
 	var result, type, template, tflags, that;
 	that = this;
     type = this.type;
@@ -228,7 +230,10 @@ Translator.Block.prototype.toString = function () {
 		if (this.args.length > 0) {
 			result += this.args.join(', ');
 		}
-		result += ');';
+		result += ')';
+        if (mode === 'statement') {
+            result += ';';
+        }
 	}
 	return result;
 };
